@@ -36,14 +36,11 @@ jobs:
 
     - name: Debug kubeconfig
       run: |
-        echo "Current AWS identity:"
-        aws sts get-caller-identity
-        echo "Checking EKS access:"
-        aws eks describe-cluster --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER_NAME }}
-        echo "Testing kubectl connection:"
-        kubectl config current-context
-        kubectl cluster-info
-        kubectl auth can-i get pods --namespace=default
+        echo "Testing kubectl connection..."
+        kubectl config current-context > /dev/null
+        kubectl cluster-info > /dev/null
+        kubectl auth can-i get pods --namespace=default > /dev/null
+        echo "kubectl connection verified"
         
     - name: Install HolmesGPT
       run: |
@@ -54,11 +51,11 @@ jobs:
         # Apply Kubernetes manifests
         kubectl apply -f https://raw.githubusercontent.com/robusta-dev/kubernetes-demos/refs/heads/main/image_pull_backoff/no_such_image.yaml
         # Wait for rollout
-        if ! kubectl rollout status deployment/app --timeout=300s; then
+        if ! kubectl rollout status deployment/customer-relations-webapp --timeout=300s; then
           echo "Deployment failed - starting HolmesGPT investigation"
           # Capture current state
           kubectl get all > deployment-state.txt
-          kubectl describe deployment app >> deployment-state.txt
+          kubectl describe deployment customer-relations-webapp >> deployment-state.txt
           kubectl get events --sort-by='.lastTimestamp' | tail -20 >> deployment-state.txt
           # Run HolmesGPT investigation and send directly to Slack
           cat deployment-state.txt | holmes ask \
