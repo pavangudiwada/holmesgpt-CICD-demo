@@ -32,9 +32,14 @@ jobs:
 
     - name: Debug kubeconfig
       run: |
+        echo "Current AWS identity:"
+        aws sts get-caller-identity
+        echo "Checking EKS access:"
+        aws eks describe-cluster --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER_NAME }}
+        echo "Testing kubectl connection:"
         kubectl config current-context
         kubectl cluster-info
-        kubectl get pods
+        kubectl auth can-i get pods --namespace=default
         
     - name: Install HolmesGPT
       run: |
