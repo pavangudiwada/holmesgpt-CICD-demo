@@ -32,8 +32,7 @@ jobs:
     
     - name: Install HolmesGPT
       run: |
-        curl -fsSL https://github.com/robusta-dev/holmesgpt/releases/latest/download/holmes-linux-amd64 -o /usr/local/bin/holmes
-        chmod +x /usr/local/bin/holmes
+        pip install holmesgpt
     
     - name: Deploy to EKS
       run: |
