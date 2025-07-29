@@ -47,6 +47,8 @@ jobs:
         pip install holmesgpt
     
     - name: Deploy to EKS
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
         # Apply Kubernetes manifests
         kubectl apply -f https://raw.githubusercontent.com/robusta-dev/kubernetes-demos/refs/heads/main/image_pull_backoff/no_such_image.yaml
