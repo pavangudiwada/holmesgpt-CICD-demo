@@ -60,7 +60,7 @@ jobs:
           kubectl describe deployment customer-relations-webapp >> deployment-state.txt
           kubectl get events --sort-by='.lastTimestamp' | tail -20 >> deployment-state.txt
           # Run HolmesGPT investigation and send directly to Slack
-          cat deployment-state.txt | holmes ask \
+          holmes ask \
             "🚨 EKS Deployment Failed in ${{ github.repository }}
 
             Environment: EKS Cluster ${{ vars.EKS_CLUSTER_NAME }} in ${{ vars.AWS_REGION }}
@@ -68,6 +68,7 @@ jobs:
             Pipeline: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             The deployment failed. Analyze why the pods are not becoming ready. Focus on: image pulls, resource limits, probes, and configuration issues" \
+            --file deployment-state.txt \
             --no-interactive \
             --destination slack \
             --slack-token "${{ secrets.SLACK_TOKEN }}" \
