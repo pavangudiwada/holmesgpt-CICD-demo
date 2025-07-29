@@ -44,7 +44,21 @@ jobs:
         
     - name: Install HolmesGPT
       run: |
-        pip install holmesgpt
+        # Clone the specific branch with the Slack file upload fix
+        git clone -b slack-file-upload-fix https://github.com/robusta-dev/holmesgpt.git /tmp/holmesgpt
+        cd /tmp/holmesgpt
+        
+        # Install Poetry
+        curl -sSL https://install.python-poetry.org | python3 - --version 1.4.0
+        export PATH="$HOME/.local/bin:$PATH"
+        
+        # Configure Poetry and install dependencies
+        poetry config virtualenvs.create false
+        poetry install
+        
+        # Install HolmesGPT in development mode
+        poetry build
+        pip install dist/*.whl
     
     - name: Deploy to EKS
       env:
@@ -55,17 +69,10 @@ jobs:
         # Wait for rollout
         if ! kubectl rollout status deployment/customer-relations-webapp --timeout=150s; then
           echo "Deployment failed - starting HolmesGPT investigation"
-          # Capture current state with proper encoding
-          echo "=== Deployment State ===" > deployment-state.txt
-          kubectl get all >> deployment-state.txt 2>&1
-          echo -e "\n=== Deployment Description ===" >> deployment-state.txt
-          kubectl describe deployment customer-relations-webapp >> deployment-state.txt 2>&1
-          echo -e "\n=== Recent Events ===" >> deployment-state.txt
-          kubectl get events --sort-by='.lastTimestamp' | tail -20 >> deployment-state.txt 2>&1
-          
-          # Ensure file has valid UTF-8 content
-          iconv -f utf-8 -t utf-8//IGNORE deployment-state.txt -o deployment-state-clean.txt || cp deployment-state.txt deployment-state-clean.txt
-          
+          # Capture current state
+          kubectl get all > deployment-state.txt
+          kubectl describe deployment customer-relations-webapp >> deployment-state.txt
+          kubectl get events --sort-by='.lastTimestamp' | tail -20 >> deployment-state.txt
           # Run HolmesGPT investigation and send directly to Slack
           holmes ask \
             "🚨 EKS Deployment Failed in ${{ github.repository }}
@@ -75,7 +82,7 @@ jobs:
             Pipeline: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             The deployment failed. Analyze why the pods are not becoming ready. Focus on: image pulls, resource limits, probes, and configuration issues" \
-            --file deployment-state-clean.txt \
+            --file deployment-state.txt \
             --no-interactive \
             --destination slack \
             --slack-token "${{ secrets.SLACK_TOKEN }}" \
