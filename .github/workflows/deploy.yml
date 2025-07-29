@@ -32,6 +32,8 @@ jobs:
 
     - name: Debug kubeconfig
       run: |
+        kubectl config current-context
+        kubectl cluster-info
         kubectl get pods
         
     - name: Install HolmesGPT
