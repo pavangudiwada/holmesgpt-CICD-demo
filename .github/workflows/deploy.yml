@@ -29,7 +29,11 @@ jobs:
     - name: Configure kubectl for EKS
       run: |
         aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER_NAME }}
-    
+
+    - name: Debug kubeconfig
+      run: |
+        kubectl get pods
+        
     - name: Install HolmesGPT
       run: |
         pip install holmesgpt
