@@ -51,7 +51,7 @@ jobs:
         # Apply Kubernetes manifests
         kubectl apply -f https://raw.githubusercontent.com/robusta-dev/kubernetes-demos/refs/heads/main/image_pull_backoff/no_such_image.yaml
         # Wait for rollout
-        if ! kubectl rollout status deployment/customer-relations-webapp --timeout=300s; then
+        if ! kubectl rollout status deployment/customer-relations-webapp --timeout=150s; then
           echo "Deployment failed - starting HolmesGPT investigation"
           # Capture current state
           kubectl get all > deployment-state.txt
