@@ -52,13 +52,8 @@ jobs:
         curl -sSL https://install.python-poetry.org | python3 - --version 1.4.0
         export PATH="$HOME/.local/bin:$PATH"
         
-        # Configure Poetry and install dependencies
-        poetry config virtualenvs.create false
+        # Install dependencies using Poetry
         poetry install
-        
-        # Install HolmesGPT in development mode
-        poetry build
-        pip install dist/*.whl
     
     - name: Deploy to EKS
       env:
@@ -74,7 +69,8 @@ jobs:
           kubectl describe deployment customer-relations-webapp >> deployment-state.txt
           kubectl get events --sort-by='.lastTimestamp' | tail -20 >> deployment-state.txt
           # Run HolmesGPT investigation and send directly to Slack
-          holmes ask \
+          cd /tmp/holmesgpt
+          poetry run holmes ask \
             "🚨 EKS Deployment Failed in ${{ github.repository }}
 
             Environment: EKS Cluster ${{ vars.EKS_CLUSTER_NAME }} in ${{ vars.AWS_REGION }}
@@ -82,7 +78,7 @@ jobs:
             Pipeline: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             The deployment failed. Analyze why the pods are not becoming ready. Focus on: image pulls, resource limits, probes, and configuration issues" \
-            --file deployment-state.txt \
+            --file $GITHUB_WORKSPACE/deployment-state.txt \
             --no-interactive \
             --destination slack \
             --slack-token "${{ secrets.SLACK_TOKEN }}" \
