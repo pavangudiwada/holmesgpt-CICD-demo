@@ -65,10 +65,6 @@ jobs:
         # Wait for rollout
         if ! kubectl rollout status deployment/customer-relations-webapp --timeout=150s; then
           echo "Deployment failed - starting HolmesGPT investigation"
-          # Capture current state
-          kubectl get all > deployment-state.txt
-          kubectl describe deployment customer-relations-webapp >> deployment-state.txt
-          kubectl get events --sort-by='.lastTimestamp' | tail -20 >> deployment-state.txt
           # Run HolmesGPT investigation and send directly to Slack
           cd /tmp/holmesgpt
           poetry run holmes ask \
@@ -79,7 +75,6 @@ jobs:
             Pipeline: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             The deployment failed. Analyze why the pods are not becoming ready. Focus on: image pulls, resource limits, probes, and configuration issues" \
-            --file $GITHUB_WORKSPACE/deployment-state.txt \
             --no-interactive \
             --destination slack \
             --slack-token "${{ secrets.SLACK_TOKEN }}" \
