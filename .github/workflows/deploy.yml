@@ -45,8 +45,8 @@ jobs:
         
     - name: Install HolmesGPT
       run: |
-        # Clone the specific branch you want to install 
-        git clone -b master https://github.com/robusta-dev/holmesgpt.git /tmp/holmesgpt
+        # Clone the branch of holmes you want to install
+        git clone -b slack-file-upload-fix https://github.com/robusta-dev/holmesgpt.git /tmp/holmesgpt
         cd /tmp/holmesgpt
         
         # Install Poetry
